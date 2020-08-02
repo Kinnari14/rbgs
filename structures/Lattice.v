@@ -53,6 +53,9 @@ Notation "'inf' i .. j , M" := (linf (fun i => .. (linf (fun j => M)) .. ))
 Section PROPERTIES.
   Context {L : cdlattice}.
 
+  Inductive const : Type :=
+  | O.
+
   Lemma sup_at {I} (i : I) (x : L) (y : I -> L) :
     x [= y i -> x [= sup i, y i.
   Proof.
@@ -169,7 +172,8 @@ Section OPS.
 
   Lemma bot_lb x :
     ref bot x.
-  Admitted.
+  Proof. unfold bot. apply sup_lub. apply Empty_set_rec. 
+  Qed. 
 
   (** ** Binary joins *)
 
@@ -178,15 +182,21 @@ Section OPS.
 
   Lemma join_ub_l x y :
     ref x (join x y).
-  Admitted.
+  Proof. unfold join. apply (sup_ub (true) (fun b => if b then x else y)).
+  Qed.   
 
   Lemma join_ub_r x y :
     ref y (join x y).
-  Admitted.
+  Proof. unfold join. apply (sup_ub (false) (fun b => if b then x else y)). 
+  Qed. 
 
   Lemma join_lub x y z :
     ref x z -> ref y z -> ref (join x y) z.
-  Admitted.
+  Proof. intros. unfold join. apply sup_iff. intros. 
+         induction i .
+         +  apply H.
+         +  apply H0.
+  Qed.      
 
   Lemma join_l x y z :
     ref x y ->
@@ -222,7 +232,8 @@ Section OPS.
 
   Lemma top_ub x :
     ref x top.
-  Admitted.
+  Proof. unfold top. apply inf_glb. apply Empty_set_rec.
+  Qed. 
 
   (** ** Binary meets *)
 
@@ -231,15 +242,21 @@ Section OPS.
 
   Lemma meet_lb_l x y :
     ref (meet x y) x.
-  Admitted.
+  Proof. unfold meet. apply (inf_lb true (fun b => if b then x else y)). 
+  Qed. 
 
   Lemma meet_lb_r x y :
     ref (meet x y) y.
-  Admitted.
+  Proof. unfold meet. apply (inf_lb false (fun b => if b then x else y)). 
+  Qed. 
 
   Lemma meet_glb x y z :
     ref x y -> ref x z -> ref x (meet y z).
-  Admitted.
+  Proof. intros. unfold meet. apply inf_glb. intros. induction i. 
+         - apply H.
+         - apply H0.
+  Qed. 
+          
 
   Lemma meet_l x y z :
     ref x z ->
@@ -272,33 +289,64 @@ Section OPS.
 
   Lemma join_bot_l x :
     join bot x = x.
-  Admitted.
+  Proof. apply (ref_join bot x); apply (bot_lb x).
+  Qed.
+         
+          
 
   Lemma join_top_l x :
     join top x = top.
-  Admitted.
+  Proof. apply antisymmetry.
+          - apply (top_ub (join top x)).
+          - apply (join_ub_l top x).
+  Qed.
+  
+  About inf_sup.
+  
 
   Lemma join_meet_l x y z :
     join (meet x y) z = meet (join x z) (join y z).
-  Admitted.
+  Proof. (*apply antisymmetry. 
+         - apply (meet_glb (join (meet x y) z) (join x z) (join y z)).
+            + apply (join_lub (meet x y) (z)(join x z)). etransitivity. apply meet_lb_l.
+              apply join_ub_l. apply join_ub_r.
+            + apply (join_lub (meet x y) (z) (join y z)). etransitivity. apply meet_lb_r.
+              apply join_ub_l. apply join_ub_r.
+         - apply (join_lub () () ()) *)  
+        unfold join. unfold meet.
+       assert (H: (sup b : bool, (if b then inf b0 : bool, (if b0 then x else y) 
+              else z)) = (inf b0 : bool , sup b : bool, if b then (if b0 then x else y)
+              else (if b0 then z else z))). {admit. }
+       rewrite -> H.
+  Admitted. 
+ (*rewrite (inf_sup (I := bool) (J := (fun b => if b then bool else unit)))*) 
 
   (* ... foo_bar_l, foo_bar_r ... *)
 
   Lemma join_comm x y :
     join x y = join y x.
-  Admitted.
+  Proof. apply antisymmetry. 
+          + apply (join_lub x y (join y x)). apply join_ub_r. apply join_ub_l.
+          + apply (join_lub y x (join x y)). apply join_ub_r. apply join_ub_l.
+  Qed.
 
   Lemma meet_comm x y :
     meet x y = meet y x.
-  Admitted.
+  Proof. apply antisymmetry.
+            + apply (meet_glb (meet x y) y x). apply meet_lb_r. apply meet_lb_l.
+            + apply (meet_glb (meet y x) x y). apply meet_lb_r. apply meet_lb_l.
+  Qed.
 
   Lemma join_idemp x :
     join x x = x.
-  Admitted.
+  Proof. apply (ref_join x x). reflexivity.
+  Qed.
+
 
   Lemma meet_idemp x :
     meet x x = x.
-  Admitted.
+  Proof. apply (ref_meet x x). reflexivity.
+  Qed.
 
   (** These properties are more than enough to completely define the
     derived operations, so that relying on their concrete definition

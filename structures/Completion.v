@@ -1,5 +1,6 @@
 Require Import coqrel.LogicalRelations.
 Require Import structures.Lattice.
+Require Import FunctionalExtensionality.
 
 (** We construct various kinds of strategy models by defining the
   plays they use and a corresponding prefix ordering, then choosing
@@ -100,16 +101,29 @@ Module LatticeCompletionDefs (LC : LatticeCategory) (CS : LatticeCompletionSpec 
     apply CS.emb_mor. auto.
   Qed.
 
+  About CS.ext_unique.
+
   Lemma ext_emb {A : poset} (x : CS.F A) :
     CS.ext CS.emb x = x.
   Proof.
-  Admitted.
+    rewrite (CS.ext_unique (fun x => x)). 
+    reflexivity. reflexivity.
+  Qed.
+
+  About CS.ext_ana.
+
+  About LC.compose_mor.
 
   Lemma ext_ext {A B : poset} {L : cdlattice} :
     forall {f : A -> CS.F B} `{!PosetMorphism f},
     forall {g : B -> L} `{!PosetMorphism g},
     forall (x : CS.F A), CS.ext g (CS.ext f x) = CS.ext (fun a => CS.ext g (f a)) x.
-  Proof.
+  Proof. intros. 
+         assert (H1 :  PosetMorphism (fun a : A => CS.ext g (f a))). {admit. }
+         apply (CS.ext_unique (fun a => CS.ext g (CS.ext f a))).
+         intro. f_equal.
+         apply (CS.ext_ana).
+    
   Admitted.
 
   Global Instance emb_params : Params (@CS.emb) 1.

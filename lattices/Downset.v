@@ -166,6 +166,8 @@ Module Downset : LatticeCompletion Sup.
 
     Lemma emb_join_prime {I} c (x : I -> F) :
       emb c [= lsup x <-> exists i, emb c [= x i.
+    Proof. 
+      split. intros. 
     Admitted.
 
     (** ** Simulator *)
